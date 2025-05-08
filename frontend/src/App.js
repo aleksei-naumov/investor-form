@@ -2,10 +2,13 @@ import { useState, useRef } from "react";
 import PlacesAutocomplete, {
   geocodeByAddress,
 } from "react-places-autocomplete";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheck } from "@fortawesome/free-solid-svg-icons";
 
 import "./index.css";
 
 const INVESTORS_API = "/api/investors";
+const SUCCESS_CONFIRMATION_DELAY = 3500;
 
 const formFields = [
   ["first_name", "First Name", "text"],
@@ -28,6 +31,7 @@ export default function App() {
   const [form, setForm] = useState(initialFormState);
   const [address, setAddress] = useState("");
   const [files, setFiles] = useState([]);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleChangeField = (e) =>
@@ -72,19 +76,21 @@ export default function App() {
     });
 
     if (res.ok) {
+      setIsSubmitted(true);
       setForm(initialFormState);
       setAddress("");
       setFiles([]);
       if (fileInputRef.current) {
         fileInputRef.current.value = null;
       }
+      setTimeout(() => setIsSubmitted(false), SUCCESS_CONFIRMATION_DELAY);
     } else {
       console.warn("Submit form error", await res.text());
     }
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6 border-2 border-gray-500 mt-8">
+    <div className="max-w-xl mx-auto p-6 border-2 border-gray-500 mt-8 shadow-xl">
       <h1 className="text-2xl font-bold mb-6">Investor Form</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         {formFields.map(([name, label, type]) => (
@@ -157,12 +163,26 @@ export default function App() {
           />
         </div>
 
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          Submit
-        </button>
+        <div className="flex items-center justify-between">
+          <div className="text-green-800 text-xl h-14">
+            {isSubmitted && (
+              <>
+                Form Successfully Submitted
+                <FontAwesomeIcon
+                  className="ml-2 mb-1"
+                  size="2xl"
+                  icon={faCheck}
+                />
+              </>
+            )}
+          </div>
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-36"
+          >
+            Submit
+          </button>
+        </div>
       </form>
     </div>
   );
