@@ -1,2 +1,5 @@
 /node_modules
 frontend/build
+database.sqlite
+uploaded_files/
+frontend/.env
