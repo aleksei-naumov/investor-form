@@ -4,6 +4,13 @@ const sqlite3 = require("sqlite3").verbose();
 const fs = require("fs");
 const path = require("path");
 
+const {
+  CREATE_INVESTORS_TABLE,
+  CREATE_DOCUMENTS_TABLE,
+  INSERT_INVESTOR,
+  INSERT_DOCUMENT,
+} = require("./queries");
+
 const app = express();
 const PORT = process.env.PORT || 5005;
 
@@ -21,6 +28,11 @@ const storage = multer.diskStorage({
 const upload = multer({ storage, limits: { fileSize: 3 * 1024 * 1024 } });
 const db = new sqlite3.Database("./database.sqlite", (err) => {
   if (err) console.error("DB error", err);
+});
+
+db.serialize(() => {
+  db.run(CREATE_INVESTORS_TABLE);
+  db.run(CREATE_DOCUMENTS_TABLE);
 });
 
 app.use(express.urlencoded({ extended: true }));
