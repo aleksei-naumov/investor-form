@@ -38,6 +38,57 @@ db.serialize(() => {
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploaded_files", express.static(UPLOAD_DIR));
 
+app.post("/api/investors", upload.array("documents", 10), (req, res) => {
+  const {
+    first_name,
+    last_name,
+    date_of_birth,
+    phone_number,
+    street_address,
+    state,
+    zip_code,
+  } = req.body;
+
+  if (
+    !first_name ||
+    !last_name ||
+    !date_of_birth ||
+    !phone_number ||
+    !street_address ||
+    !state ||
+    !zip_code
+  )
+    return res.status(400).send("All fields are required.");
+
+  if (!req.files || req.files.length === 0)
+    return res.status(400).send("At least one document is required.");
+
+  db.run(
+    INSERT_INVESTOR,
+    [
+      first_name.trim(),
+      last_name.trim(),
+      date_of_birth,
+      phone_number.trim(),
+      street_address.trim(),
+      state.trim(),
+      zip_code.trim(),
+    ],
+    function (err) {
+      if (err) return res.status(500).send("DB error");
+
+      const investorId = this.lastID;
+      const stmt = db.prepare(INSERT_DOCUMENT);
+      req.files.forEach((file) =>
+        stmt.run(investorId, file.filename, file.originalname)
+      );
+
+      stmt.finalize();
+      res.sendStatus(200);
+    }
+  );
+});
+
 const CLIENT_BUILD = path.join(__dirname, "frontend", "build");
 app.use(express.static(CLIENT_BUILD));
 
