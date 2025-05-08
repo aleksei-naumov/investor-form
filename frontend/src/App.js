@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import PlacesAutocomplete, {
   geocodeByAddress,
 } from "react-places-autocomplete";
 
 import "./index.css";
+
+const INVESTORS_API = "/api/investors";
 
 const formFields = [
   ["first_name", "First Name", "text"],
@@ -25,6 +27,8 @@ const initialFormState = {
 export default function App() {
   const [form, setForm] = useState(initialFormState);
   const [address, setAddress] = useState("");
+  const [files, setFiles] = useState([]);
+  const fileInputRef = useRef(null);
 
   const handleChangeField = (e) =>
     setForm((prevForm) => ({ ...prevForm, [e.target.name]: e.target.value }));
@@ -53,10 +57,36 @@ export default function App() {
     }
   };
 
+  const handleFiles = (e) => setFiles(e.target.files);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const data = new FormData();
+
+    Object.entries(form).forEach(([k, v]) => data.append(k, v));
+    Array.from(files).forEach((file) => data.append("documents", file));
+
+    const res = await fetch(INVESTORS_API, {
+      method: "POST",
+      body: data,
+    });
+
+    if (res.ok) {
+      setForm(initialFormState);
+      setAddress("");
+      setFiles([]);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = null;
+      }
+    } else {
+      console.warn("Submit form error", await res.text());
+    }
+  };
+
   return (
     <div className="max-w-xl mx-auto p-6 border-2 border-gray-500 mt-8">
       <h1 className="text-2xl font-bold mb-6">Investor Form</h1>
-      <form className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         {formFields.map(([name, label, type]) => (
           <div key={name}>
             <label className="block mb-1 font-medium">{label}</label>
@@ -114,6 +144,25 @@ export default function App() {
 
         <input type="hidden" name="state" value={form.state} />
         <input type="hidden" name="zip_code" value={form.zip_code} />
+
+        <div>
+          <label className="block mb-1 font-medium">Documents</label>
+          <input
+            type="file"
+            ref={fileInputRef}
+            multiple
+            onChange={handleFiles}
+            required
+            className="w-full"
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Submit
+        </button>
       </form>
     </div>
   );
