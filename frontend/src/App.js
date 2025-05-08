@@ -11,10 +11,10 @@ const INVESTORS_API = "/api/investors";
 const SUCCESS_CONFIRMATION_DELAY = 3500;
 
 const formFields = [
-  ["first_name", "First Name", "text"],
-  ["last_name", "Last Name", "text"],
-  ["date_of_birth", "Date of Birth", "date"],
-  ["phone_number", "Phone Number", "tel"],
+  ["first_name", "First Name*", "text"],
+  ["last_name", "Last Name*", "text"],
+  ["date_of_birth", "Date of Birth*", "date"],
+  ["phone_number", "Phone Number*", "tel"],
 ];
 
 const initialFormState = {
@@ -25,6 +25,10 @@ const initialFormState = {
   street_address: "",
   state: "",
   zip_code: "",
+};
+
+const isFormStateValid = (formState, files) => {
+  return files.length > 0 && Object.values(formState).every((input) => !!input);
 };
 
 export default function App() {
@@ -93,6 +97,8 @@ export default function App() {
     }
   };
 
+  const buttonIsDisabled = !isFormStateValid(form, files) || isSubmitting;
+
   return (
     <div className="max-w-xl mx-auto p-6 border-2 border-gray-500 mt-8 shadow-xl">
       <h1 className="text-2xl font-bold mb-6">Investor Form</h1>
@@ -112,7 +118,7 @@ export default function App() {
         ))}
 
         <div>
-          <label className="block mb-1 font-medium">Street Address</label>
+          <label className="block mb-1 font-medium">Street Address*</label>
           <PlacesAutocomplete
             value={address}
             onChange={setAddress}
@@ -128,7 +134,7 @@ export default function App() {
               <div>
                 <input
                   {...getInputProps({
-                    placeholder: "Start typing your address...",
+                    placeholder: "Start typing the address...",
                     className: "w-full border border-gray-300 rounded p-2",
                     required: true,
                   })}
@@ -156,7 +162,7 @@ export default function App() {
         <input type="hidden" name="zip_code" value={form.zip_code} />
 
         <div>
-          <label className="block mb-1 font-medium">Documents</label>
+          <label className="block mb-1 font-medium">Documents*</label>
           <input
             type="file"
             ref={fileInputRef}
@@ -182,9 +188,9 @@ export default function App() {
           </div>
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={buttonIsDisabled}
             className={`w-36 px-4 py-2 rounded text-white ${
-              isSubmitting ? "bg-blue-300" : "bg-blue-600 hover:bg-blue-700"
+              buttonIsDisabled ? "bg-blue-300" : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
             {isSubmitting ? "Submitting..." : "Submit"}
