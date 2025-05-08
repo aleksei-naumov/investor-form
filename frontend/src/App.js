@@ -32,6 +32,7 @@ export default function App() {
   const [address, setAddress] = useState("");
   const [files, setFiles] = useState([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleChangeField = (e) =>
@@ -65,6 +66,7 @@ export default function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     const data = new FormData();
 
     Object.entries(form).forEach(([k, v]) => data.append(k, v));
@@ -76,6 +78,7 @@ export default function App() {
     });
 
     if (res.ok) {
+      setIsSubmitting(false);
       setIsSubmitted(true);
       setForm(initialFormState);
       setAddress("");
@@ -85,6 +88,7 @@ export default function App() {
       }
       setTimeout(() => setIsSubmitted(false), SUCCESS_CONFIRMATION_DELAY);
     } else {
+      setIsSubmitting(false);
       console.warn("Submit form error", await res.text());
     }
   };
@@ -178,9 +182,12 @@ export default function App() {
           </div>
           <button
             type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-36"
+            disabled={isSubmitting}
+            className={`w-36 px-4 py-2 rounded text-white ${
+              isSubmitting ? "bg-blue-300" : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
-            Submit
+            {isSubmitting ? "Submitting..." : "Submit"}
           </button>
         </div>
       </form>
